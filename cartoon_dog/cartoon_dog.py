@@ -126,7 +126,7 @@ class CartoonDog:
             self.__download(image_url, save_image_name)
 
             # 通过模拟点击加载下一页，如果已经是最后一页，会有弹窗提示，通过这个确定章节是否下完
-            self.browser.find_element_by_css_selector('a.next').click()
+            self.browser.find_element_by_css_selector('.next').click()
             try:
                 # 没有结束弹窗，继续下载
                 # self.browser.find_element_by_css_selector('#bgDiv')
@@ -134,8 +134,11 @@ class CartoonDog:
                     '#image_trigger').get_attribute('width')
                 if width < 800:
                     break
-            except NoSuchElementException:
-                image_idx += 1
+                else:
+                    image_idx += 1
+
+            except NoSuchElementException, e:
+                logging.info('click next error %s' % e)
         logging.info('#### DOWNLOAD CHAPTER COMPLETE ####')
 
     def get_chapter_list(self):
