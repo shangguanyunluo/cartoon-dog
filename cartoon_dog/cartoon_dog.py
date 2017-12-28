@@ -130,9 +130,10 @@ class CartoonDog:
             try:
                 # 没有结束弹窗，继续下载
                 # self.browser.find_element_by_css_selector('#bgDiv')
-                width = self.browser.find_element_by_css_selector(
-                    '#image_trigger').get_attribute('width')
-                if width < 800:
+                size = len(self.browser.find_elements_by_css_selector(
+                    '#current_read_image img'))
+                # print 'size is %s' % size
+                if size < 4:
                     break
                 else:
                     image_idx += 1
