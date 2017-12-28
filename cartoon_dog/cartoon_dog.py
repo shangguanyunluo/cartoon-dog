@@ -115,11 +115,10 @@ class CartoonDog:
 
         image_idx = 1
         self.browser.get(chapter_url)
-        self.browser.find_element_by_css_selector('#tucao_right_button_guide').click()
 
         while True:
-            image_url = self.browser.find_element_by_css_selector(
-                '#image_trigger').get_attribute('src')
+            image_url = self.browser.find_elements_by_css_selector(
+                '#current_read_image img')[1].get_attribute('src')
             save_image_name = os.path.join(save_folder,
                                            ('%05d' % image_idx) + '.' +
                                            os.path.basename(image_url).split(
@@ -154,12 +153,12 @@ if __name__ == '__main__':
     site = 'http://www.u17.com/comic/3166.html'
 
     crawler = CartoonDog(
-        site=site,                                          # 漫画首页
-        begin=0,                                            # 起始章节
-        end=2,                                              # 结束章节
-        save_folder='D:\\yanjiali',                         # 保存路径，不存在会自动创建
-        browser=BrowserType.PHANTOMJS,                      # 浏览器类型：FIREFOX，CHROME，SAFARI，IE，PHANTOMJS
-        driver='D:\\app\\phantomjs\\bin\\phantomjs.exe'    # 驱动程序路径，firefox不需要
+        site=site,  # 漫画首页
+        begin=0,  # 起始章节
+        end=2,  # 结束章节
+        save_folder='D:\\yanjiali',  # 保存路径，不存在会自动创建
+        browser=BrowserType.PHANTOMJS,  # 浏览器类型：FIREFOX，CHROME，SAFARI，IE，PHANTOMJS
+        driver='D:\\app\\phantomjs\\bin\\phantomjs.exe'  # 驱动程序路径，firefox不需要
     )
 
-    print len(crawler.get_chapter_list())
+    crawler.start()
