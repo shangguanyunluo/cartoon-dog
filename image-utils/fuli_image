@@ -3,9 +3,6 @@
 import os
 import urllib2
 import re
-import math
-import random
-import time
 
 
 class ImageUtile:
@@ -61,7 +58,6 @@ class ImageUtile:
         return self.imageList
 
     def saveImage(self, path=None, imageList=[]):
-        time.sleep(1)
         try:
             for url in imageList:
                 path = os.path.join(path, str(url).split(r'-')[-1])
@@ -74,7 +70,6 @@ class ImageUtile:
             print e.message
 
     def getNextPage(self, str_line=''):
-        # time.sleep(1)
         if self.nextPageSymbal.decode('utf8').encode(self.charset) in str_line:
             str_line = str_line.split('next-page')[-1]
             compile = re.compile(r"(\w+.html)+")
@@ -91,15 +86,16 @@ class ImageUtile:
 
 
 if __name__ == '__main__':
+    url = 'http://yxpjw.club/luyilu/2017/1214/4341.html'
     headers = {'Referer': 'http://yxpjw.club/luyilu/2016/0703/2146.html'}
     headers[
         'UserAgent'] = 'Mozilla/5.0  AppleWebKit/537.36  Chrome/48.0.2564.23 Mobile Safari/537.36'
 
     image_util = ImageUtile(
-        title='lilisha',
-        url='http://yxpjw.club/luyilu/2016/0703/2146.html',
+        title='WANIMAL2017_7',
+        url=url,
         savePath='D:\\yanjiali',
-        headers={'Referer': 'http://yxpjw.club/luyilu/2016/0703/2146.html'},
+        headers={'Referer': url},
         nextPageSymbal='下一页',
         charset='gb2312'
     )
