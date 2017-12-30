@@ -25,7 +25,15 @@ class ImageUtile:
 
     def getImageList(self, url=None, imageType=['jpg']):
         request = urllib2.Request(url, headers=self.headers)
-        html = urllib2.urlopen(request)
+        try_num = 3
+        while try_num > 0:
+            try:
+                html = urllib2.urlopen(request)
+                break
+            except Exception, e:
+                print e.message
+                try_num -= 1
+                continue
         try:
             source = html.readlines()
             for image_line in source:
@@ -39,7 +47,6 @@ class ImageUtile:
                             self.saveImage(self.savePath, [pattern])
 
                 if 'next-page' in image_line:
-                    time.sleep(3)
                     self.flag = True
                     next_url = self.getNextPage(str_line=image_line)
                     while self.flag:
@@ -54,6 +61,7 @@ class ImageUtile:
         return self.imageList
 
     def saveImage(self, path=None, imageList=[]):
+        time.sleep(1)
         try:
             for url in imageList:
                 path = os.path.join(path, str(url).split(r'-')[-1])
@@ -66,6 +74,7 @@ class ImageUtile:
             print e.message
 
     def getNextPage(self, str_line=''):
+        # time.sleep(1)
         if self.nextPageSymbal.decode('utf8').encode(self.charset) in str_line:
             str_line = str_line.split('next-page')[-1]
             compile = re.compile(r"(\w+.html)+")
@@ -82,9 +91,9 @@ class ImageUtile:
 
 
 if __name__ == '__main__':
-    headers = {'Referer': 'http://***/luyilu/2016/0703/2146.html'}
+    headers = {'Referer': 'http://yxpjw.club/luyilu/2016/0703/2146.html'}
     headers[
-        'UserAgent'] = 'Mozilla/5.0 (Linux; Android 5.1.1; Nexus 6 Build/LYZ28E) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.23 Mobile Safari/537.36'
+        'UserAgent'] = 'Mozilla/5.0  AppleWebKit/537.36  Chrome/48.0.2564.23 Mobile Safari/537.36'
 
     image_util = ImageUtile(
         title='lilisha',
@@ -96,6 +105,3 @@ if __name__ == '__main__':
     )
 
     image_util.start()
-
- 
-    
