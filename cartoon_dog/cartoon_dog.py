@@ -113,14 +113,14 @@ class CartoonDog:
         if not os.path.exists(save_folder):
             os.mkdir(save_folder)
 
-        image_idx = 1
         self.browser.get(chapter_url)
-
+        pageNum = 1
+        curNum, totalNum = self.browser.find_element_by_class_name('pagenum').text.split('/')
+        totalNum = int(totalNum)
         while True:
-            image_url = self.browser.find_elements_by_css_selector(
-                '#current_read_image img')[1].get_attribute('src')
+            image_url = self.browser.find_element_by_class_name('cur_img').get_attribute('src')
             save_image_name = os.path.join(save_folder,
-                                           ('%05d' % image_idx) + '.' +
+                                           ('%5s' % pageNum) + '.' +
                                            os.path.basename(image_url).split(
                                                '.')[-1])
             self.__download(image_url, save_image_name)
@@ -130,13 +130,11 @@ class CartoonDog:
             try:
                 # 没有结束弹窗，继续下载
                 # self.browser.find_element_by_css_selector('#bgDiv')
-                size = len(self.browser.find_elements_by_css_selector(
-                    '#current_read_image img'))
-                # print 'size is %s' % size
-                if size < 4:
-                    break
+                if pageNum <= totalNum:
+                    pageNum += 1
+                    continue
                 else:
-                    image_idx += 1
+                    break
 
             except NoSuchElementException, e:
                 logging.info('click next error %s' % e)
