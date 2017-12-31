@@ -23,14 +23,18 @@ class ImageUtile:
     def getImageList(self, url=None, imageType=['jpg']):
         request = urllib2.Request(url, headers=self.headers)
         try_num = 5
+        html = None
         while try_num > 0:
             try:
                 html = urllib2.urlopen(request)
                 break
-            except Exception, e:
-                print e.message
+            except:
+                print 'There is %s chance last.' % (try_num - 1)
                 try_num -= 1
                 continue
+        if not html:
+            print 'Read from html error'
+            exit()
         try:
             source = html.readlines()
             for image_line in source:
@@ -54,8 +58,6 @@ class ImageUtile:
         finally:
             html.close()
             self.flag = False
-
-        return self.imageList
 
     def saveImage(self, path=None, imageList=[]):
         try:
@@ -88,13 +90,14 @@ class ImageUtile:
 
 
 if __name__ == '__main__':
-    url = 'http://yxpjw.club/luyilu/2016/0224/1990.html'
+    url = 'http://yxpjw.club/luyilu/2016/1231/2792.html'
+    title = 'yidianyuan_005'
     headers = {'Referer': url}
     headers[
         'UserAgent'] = 'Mozilla/5.0  AppleWebKit/537.36  Chrome/48.0.2564.23 Mobile Safari/537.36'
 
     image_util = ImageUtile(
-        title='TuiGirl_songguo',
+        title=title,
         url=url,
         savePath='D:\\yanjiali',
         headers=headers,
