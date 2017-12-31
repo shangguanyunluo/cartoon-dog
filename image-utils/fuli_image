@@ -23,55 +23,59 @@ class ImageUtile:
     def getImageList(self, url=None, imageType=['jpg']):
         request = urllib2.Request(url, headers=self.headers)
         try_num = 5
-        html = None
         while try_num > 0:
             try:
-                html = urllib2.urlopen(request)
+                html = urllib2.urlopen(request, timeout=30)
+                source = html.readlines()
+                for image_line in source:
+                    if ('<img' in image_line) and ('src=' in image_line) and ('class' not in image_line):
+                        for type in imageType:
+                            pattern = re.search(r'src="(.*' + type + ')"', image_line)
+                            if pattern:
+                                pattern = pattern.groups()[0]
+                                print pattern
+                                self.imageList.append(pattern)
+                                self.saveImage(self.savePath, [pattern])
+
+                    if 'next-page' in image_line:
+                        self.flag = True
+                        next_url = self.getNextPage(str_line=image_line)
+                        while self.flag:
+                            self.getImageList(next_url)
+                html.close()
+                self.flag = False
                 break
             except:
-                print 'There is %s chance last.' % (try_num - 1)
                 try_num -= 1
+                print 'There is %s chance last to read from html.' % try_num
                 continue
         if not html:
             print 'Read from html error'
             exit()
-        try:
-            source = html.readlines()
-            for image_line in source:
-                if ('<img' in image_line) and ('src=' in image_line) and ('class' not in image_line):
-                    for type in imageType:
-                        pattern = re.search(r'src="(.*' + type + ')"', image_line)
-                        if pattern:
-                            pattern = pattern.groups()[0]
-                            print pattern
-                            self.imageList.append(pattern)
-                            self.saveImage(self.savePath, [pattern])
-
-                if 'next-page' in image_line:
-                    self.flag = True
-                    next_url = self.getNextPage(str_line=image_line)
-                    while self.flag:
-                        self.getImageList(next_url)
-        except Exception, e:
-            print e.message
-            print "Read the html error!"
-        finally:
-            html.close()
-            self.flag = False
 
     def saveImage(self, path=None, imageList=[]):
-        try:
-            for url in imageList:
-                path = os.path.join(path, str(url).split(r'-')[-1])
-                if os.path.exists(path):
+        
+        for url in imageList:
+            path = os.path.join(path, str(url).split(r'-')[-1])
+            print path
+            image_file = path.decode(self.charset).encode('utf8')
+            if os.path.exists(image_file):
+                print 'The image is already exist'
+                continue
+            request = urllib2.Request(url, headers=self.headers)
+            # response = urllib2.urlopen(request)
+            try_num = 5
+            while try_num > 0:
+                try:
+                    response = urllib2.urlopen(request)
+                    with open(path, 'wb') as fp:
+                        fp.write(response.read())
+                    break
+                except:
+                    print 'There is %s chance last to save image.' % (try_num - 1)
+                    try_num -= 1
                     continue
-                request = urllib2.Request(url, headers=self.headers)
-                response = urllib2.urlopen(request)
-                content = response.read()
-                with open(path, 'wb') as fp:
-                    fp.write(content)
-        except Exception, e:
-            print e.message
+    
 
     def getNextPage(self, str_line=''):
         if self.nextPageSymbal.decode('utf8').encode(self.charset) in str_line:
@@ -90,8 +94,8 @@ class ImageUtile:
 
 
 if __name__ == '__main__':
-    url = 'http://yxpjw.club/luyilu/2016/1231/2792.html'
-    title = 'yidianyuan_005'
+    url = 'http://yxpjw.club/luyilu/2017/0324/3158.html'
+    title = 'JICHENV_003_QIANYUGUO'
     headers = {'Referer': url}
     headers[
         'UserAgent'] = 'Mozilla/5.0  AppleWebKit/537.36  Chrome/48.0.2564.23 Mobile Safari/537.36'
