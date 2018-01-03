@@ -1,0 +1,148 @@
+#! /usr/bin/python
+# coding:utf-8
+import re
+from selenium import webdriver
+from selenium.common.exceptions import NoSuchElementException
+from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
+import urllib2
+import os
+
+
+class Enum(tuple):
+    __getattr__ = tuple.index
+
+
+BrowserType = Enum(['FIREFOX', 'CHROME', 'IE', 'SAFARI', 'PHANTOMJS'])
+
+
+class CartoonDog:
+    def __init__(self, site, save_folder='/root/Downloads',
+                 browser=BrowserType.FIREFOX, driver=None):
+        """
+        :param site: 首页面
+        :param browser: 浏览器类型
+        :param driver: 驱动，如果驱动程序在可访问的位置，这个参数非必须，对于PhantomJs，驱动程序就是改程序的地址
+        """
+        self.site = site
+        self.title = None
+        self.save_folder = save_folder
+        self.curpage_image_list = []
+        self.headers = {'Referer': site}
+        self.image_size = 0
+
+        if not os.path.exists(self.save_folder):
+            os.mkdir(self.save_folder)
+
+        if BrowserType.FIREFOX == browser:
+            self.browser = webdriver.Firefox()
+        elif BrowserType.CHROME == browser:
+            # 进入浏览器设置
+            options = webdriver.ChromeOptions()
+            # 更换头部
+            options.add_argument('headers="%s"' % self.headers)
+            self.browser = webdriver.Chrome(executable_path=driver, chrome_options=options)
+        elif BrowserType.IE == browser:
+            self.browser = webdriver.Ie(driver)
+        elif BrowserType.SAFARI == browser:
+            self.browser = webdriver.Safari(driver)
+        elif BrowserType.PHANTOMJS == browser:
+            self.browser = webdriver.PhantomJS(driver)
+        else:
+            raise TypeError('UNKNOWN BROWSER TYPE: %s' % browser)
+
+    def __del__(self):
+        self.browser.quit()
+
+    def __get_curpage_image_list(self, site=None):
+        """
+        获取当前页图片列表
+        :return: None
+        """
+        try:
+            if site is not None:
+                self.browser.get(site)
+            curpage_image_list = self.browser.find_elements_by_css_selector('.article-content p img')
+            if self.title is None:
+                self.title = self.browser.find_element_by_class_name('article-title').text
+
+            for image_elem in curpage_image_list:
+                self.curpage_image_list.append(image_elem.get_attribute('src'))
+            self.cur_image_size = len(curpage_image_list)
+            print "Title is %s , image num in this page is %s." % (self.title, self.cur_image_size)
+        except Exception, e:
+            print 'Get title or image list from html page error.'
+            print "===========%s================" % e
+            exit(1)
+
+    def __download(self, url, save_path, try_time=5, timeout=500):
+        """
+        下载
+        :param url:
+        :param save_path:
+        :param try_time:
+        :param timeout:
+        :return:
+        """
+        while try_time > 0:
+            try:
+                request = urllib2.Request(url, headers=self.headers)
+                content = urllib2.urlopen(request, timeout=timeout).read()
+                with open(save_path, 'wb') as fp:
+                    fp.write(content)
+                break
+            except Exception, et:
+                try_time -= 1
+                print("There is %s chance last to save image from pag")
+                if try_time == 0:
+                    print('cannot download: %s to %s' % (url, save_path))
+
+    def download_image(self, site=None, save_folder=None):
+        """
+        下载image
+        :param save_folder: 保存路径
+        :return:
+        """
+        print 'Current site is %s.' % site
+        self.__get_curpage_image_list(site)
+
+        save_folder = save_folder if save_folder is not None else self.save_folder
+        save_folder = os.path.join(save_folder, self.title)
+        if not os.path.exists(save_folder):
+            os.mkdir(save_folder)
+        self.flag = True
+        while self.flag:
+            for image_url in self.curpage_image_list[-self.cur_image_size:]:
+                print 'image_url is %s.' % image_url
+                save_image_name = os.path.join(save_folder, image_url.split('-')[-1])
+                if os.path.exists(save_image_name):
+                    if os.path.getsize(save_image_name) > 10:
+                        print "It is already exist %s" % save_image_name
+                self.__download(image_url, save_image_name)
+            try:
+                # 通过模拟点击加载下一页
+                next_page = self.browser.find_element_by_css_selector('.next-page a').get_attribute('href')
+                self.download_image(next_page)
+            except NoSuchElementException, e:
+                self.flag = False
+                self.browser.quit()
+                print('There is no more page.')
+                print ('#### DOWNLOAD COMPLETE %s####' % len(self.curpage_image_list))
+
+    def get_chapter_list(self):
+        return self.curpage_image_list
+
+    def start(self):
+
+        self.download_image(self.site)
+
+
+if __name__ == '__main__':
+    image_util = CartoonDog(
+        site='http://888jwnet.com/luyilu/2017/0208/2967.html',
+        # site='http://yxp****.com/luyilu/2016/0704/2151.html',
+        save_folder='D:\\yxpjw.club',
+        browser=BrowserType.PHANTOMJS,
+        driver='D:\\app\\phantomjs\\bin\\phantomjs.exe'
+    )
+
+    image_util.start()
