@@ -92,7 +92,7 @@ class CartoonDog:
                 break
             except Exception, et:
                 try_time -= 1
-                print("There is %s chance last to save image from pag")
+                print("There is %s chance last to save image from pag" % try_time)
                 if try_time == 0:
                     print('cannot download: %s to %s' % (url, save_path))
 
@@ -117,6 +117,7 @@ class CartoonDog:
                 if os.path.exists(save_image_name):
                     if os.path.getsize(save_image_name) > 10:
                         print "It is already exist %s" % save_image_name
+                        continue
                 self.__download(image_url, save_image_name)
             try:
                 # 通过模拟点击加载下一页
@@ -138,8 +139,7 @@ class CartoonDog:
 
 if __name__ == '__main__':
     image_util = CartoonDog(
-        site='http://888jwnet.com/luyilu/2017/0208/2967.html',
-        # site='http://yxp****.com/luyilu/2016/0704/2151.html',
+        site='http://yxpjwnet.com/luyilu/2017/1229/4415.html',
         save_folder='D:\\yxpjw.club',
         browser=BrowserType.PHANTOMJS,
         driver='D:\\app\\phantomjs\\bin\\phantomjs.exe'
